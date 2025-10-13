@@ -17,4 +17,11 @@ function authenticateToken(req, res, next) {
   });
 }
 
-module.exports = { authenticateToken };
+function requireOwner(req, res, next) {
+  if (req.user.role !== 'OWNER') {
+    return res.status(403).json({ message: 'Access denied. Owner only.' });
+  }
+  next();
+}
+
+module.exports = { authenticateToken, requireOwner };

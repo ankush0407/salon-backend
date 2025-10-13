@@ -79,4 +79,40 @@ async function updateSheetRow(sheetName, rowNumber, data) {
   }
 }
 
-module.exports = { getSheetData, appendSheetData, updateSheetRow };
+async function deleteSheetRow(sheetName, rowNumber) {
+  try {
+    const response = await sheets.spreadsheets.get({
+      spreadsheetId: SPREADSHEET_ID,
+    });
+    
+    // Find the sheet ID
+    const sheet = response.data.sheets.find(s => s.properties.title === sheetName);
+    if (!sheet) {
+      throw new Error(`Sheet ${sheetName} not found`);
+    }
+    
+    const sheetId = sheet.properties.sheetId;
+    
+    // Delete the row
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      resource: {
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId: sheetId,
+              dimension: 'ROWS',
+              startIndex: rowNumber - 1,
+              endIndex: rowNumber
+            }
+          }
+        }]
+      }
+    });
+  } catch (error) {
+    console.error('Error deleting row:', error);
+    throw error;
+  }
+}
+
+module.exports = { getSheetData, appendSheetData, updateSheetRow, deleteSheetRow };

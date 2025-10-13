@@ -5,15 +5,16 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const subscriptionRoutes = require('./routes/subscriptions');
+const subscriptionTypesRoutes = require('./routes/subscriptionTypes');
 
 const app = express();
 
-// CORS Configuration - Allow Vercel domain
+// CORS Configuration
 const corsOptions = {
   origin: [
     'http://localhost:3000',
     'https://salon-subscription-app.vercel.app',
-    'https://salon-subscription-app-*.vercel.app', // For preview deployments
+    'https://salon-subscription-app-*.vercel.app',
   ],
   credentials: true,
   optionsSuccessStatus: 200
@@ -26,6 +27,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/subscription-types', subscriptionTypesRoutes);
 
 // Health check
 app.get('/', (req, res) => {
