@@ -34,4 +34,64 @@ router.post('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Update customer
+router.put('/:id', authenticateToken, async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const customerId = req.params.id;
+    
+    const customers = await getSheetData('Customers');
+    const customerIndex = customers.findIndex(c => c.id === customerId);
+    
+    if (customerIndex === -1) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    
+    const updatedCustomer = {
+      ...customers[customerIndex],
+      name,
+      email,
+      phone
+    };
+    
+    await updateSheetRow('Customers', customerIndex + 2, updatedCustomer);
+    
+    res.json(updatedCustomer);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Delete customer
+router.delete('/:id', authenticateToken, async (req, res) => {
+  try {
+    const customerId = req.params.id;
+    
+    const customers = await getSheetData('Customers');
+    const customerIndex = customers.findIndex(c => c.id === customerId);
+    
+    if (customerIndex === -1) {
+      return res.status(404).json({ message: 'Customer not found' });
+    }
+    
+    await deleteSheetRow('Customers', customerIndex + 2);
+    
+    // Also delete all subscriptions for this customer
+    const subscriptions = await getSheetData('Subscriptions');
+    const customerSubscriptions = subscriptions
+      .map((sub, idx) => ({ sub, idx }))
+      .filter(({ sub }) => sub.customerId === customerId)
+      .reverse(); // Delete from bottom to top to maintain indices
+    
+    for (const { idx } of customerSubscriptions) {
+      await deleteSheetRow('Subscriptions', idx + 2);
+    }
+    
+    res.json({ message: 'Customer and associated subscriptions deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 module.exports = router;
