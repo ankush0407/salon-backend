@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getSheetData, appendSheetData } = require('../utils/sheets');
+const { getSheetData, appendSheetData, updateSheetRow, deleteSheetRow } = require('../utils/sheets');
 const { authenticateToken } = require('../middleware/auth');
 
 // Get all customers
@@ -39,7 +39,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { name, email, phone } = req.body;
     const customerId = req.params.id;
-    
+    console.log('Update customer request:', { customerId, name, email, phone });
     const customers = await getSheetData('Customers');
     const customerIndex = customers.findIndex(c => c.id === customerId);
     
@@ -53,11 +53,12 @@ router.put('/:id', authenticateToken, async (req, res) => {
       email,
       phone
     };
-    
+    console.log('Updating customer at index:', customerIndex + 2);
     await updateSheetRow('Customers', customerIndex + 2, updatedCustomer);
     
     res.json(updatedCustomer);
   } catch (error) {
+    console.error('Error updating customer:', error);
     res.status(500).json({ message: error.message });
   }
 });
